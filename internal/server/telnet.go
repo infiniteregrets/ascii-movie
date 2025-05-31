@@ -11,9 +11,6 @@ import (
 	"gabe565.com/ascii-movie/internal/movie"
 	"gabe565.com/ascii-movie/internal/player"
 	"gabe565.com/ascii-movie/internal/server/idleconn"
-	"gabe565.com/ascii-movie/internal/server/telnet"
-	tea "github.com/charmbracelet/bubbletea"
-	"github.com/muesli/termenv"
 )
 
 type TelnetServer struct {
@@ -103,52 +100,8 @@ func (s *TelnetServer) Handler(ctx context.Context, conn net.Conn, m *movie.Movi
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
-	in, profile, sizeCh, errCh := telnet.Proxy(conn)
-	defer func() {
-		_ = in.Close()
-	}()
-
-	gotProfile := profile != -1
-	if !gotProfile {
-		profile = termenv.ANSI256
+	p := player.NewSimplePlayer(m, logger, conn)
+	if err := p.Play(ctx); err != nil && !errors.Is(err, context.Canceled) {
+		logger.Error("Movie playback failed", "error", err)
 	}
-
-	p := player.NewPlayer(m, logger, telnet.MakeRenderer(conn, profile))
-	defer p.Close()
-
-	opts := []tea.ProgramOption{
-		tea.WithInput(in),
-		tea.WithOutput(conn),
-		tea.WithFPS(30),
-	}
-	if gotProfile {
-		opts = append(opts, tea.WithAltScreen(), tea.WithMouseCellMotion())
-	}
-	program := tea.NewProgram(p, opts...)
-
-	go func() {
-		for {
-			select {
-			case <-ctx.Done():
-				program.Quit()
-				return
-			case <-errCh:
-				cancel()
-			case info := <-sizeCh:
-				program.Send(tea.WindowSizeMsg{
-					Width:  int(info.Width),
-					Height: int(info.Height),
-				})
-			}
-		}
-	}()
-
-	if _, err := program.Run(); err != nil && !errors.Is(err, tea.ErrProgramKilled) {
-		logger.Error("Program failed", "error", err)
-	}
-
-	// p.Kill() will force kill the program if it's still running,
-	// and restore the terminal to its original state in case of a
-	// tui crash
-	program.Kill()
 }

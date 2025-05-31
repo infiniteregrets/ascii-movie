@@ -8,7 +8,6 @@ import (
 	"gabe565.com/ascii-movie/internal/player"
 	"gabe565.com/utils/cobrax"
 	"gabe565.com/utils/slogx"
-	tea "github.com/charmbracelet/bubbletea"
 	"github.com/spf13/cobra"
 )
 
@@ -52,15 +51,6 @@ func run(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	p := player.NewPlayer(&m, slog.Default(), nil)
-	defer p.Close()
-
-	program := tea.NewProgram(p,
-		tea.WithAltScreen(),
-		tea.WithMouseCellMotion(),
-	)
-	if _, err := program.Run(); err != nil {
-		return err
-	}
-	return nil
+	p := player.NewSimplePlayer(&m, slog.Default(), cmd.OutOrStdout())
+	return p.Play(cmd.Context())
 }

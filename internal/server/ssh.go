@@ -11,12 +11,10 @@ import (
 	"gabe565.com/ascii-movie/internal/config"
 	"gabe565.com/ascii-movie/internal/movie"
 	"gabe565.com/ascii-movie/internal/player"
-	"gabe565.com/ascii-movie/internal/util"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/ssh"
 	"github.com/charmbracelet/wish"
 	"github.com/charmbracelet/wish/bubbletea"
-	"github.com/muesli/termenv"
 	gossh "golang.org/x/crypto/ssh"
 	"golang.org/x/sync/errgroup"
 )
@@ -116,25 +114,25 @@ func (s *SSHServer) Handler(m *movie.Movie) bubbletea.Handler {
 			"user", session.User(),
 		)
 
-		renderer := bubbletea.MakeRenderer(session)
-		if renderer.ColorProfile() == termenv.Ascii {
-			if pty, _, ok := session.Pty(); ok {
-				renderer.SetColorProfile(util.Profile(pty.Term))
-			}
-		}
-
-		p := player.NewPlayer(m, logger, renderer)
+		p := player.NewSimplePlayer(m, logger, session)
 		go func() {
 			<-session.Context().Done()
-			p.Close()
 		}()
-		return p, []tea.ProgramOption{
-			tea.WithFPS(30),
-			tea.WithAltScreen(),
-			tea.WithMouseCellMotion(),
-		}
+		go func() {
+			if err := p.Play(session.Context()); err != nil {
+				logger.Error("Movie playback failed", "error", err)
+			}
+			session.Close()
+		}()
+		return &noopModel{}, []tea.ProgramOption{}
 	}
 }
+
+type noopModel struct{}
+
+func (n *noopModel) Init() tea.Cmd { return tea.Quit }
+func (n *noopModel) Update(tea.Msg) (tea.Model, tea.Cmd) { return n, tea.Quit }
+func (n *noopModel) View() string { return "" }
 
 func (s *SSHServer) TrackStream(handler ssh.Handler) ssh.Handler {
 	return func(session ssh.Session) {
