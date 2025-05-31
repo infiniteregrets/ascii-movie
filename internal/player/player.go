@@ -175,7 +175,7 @@ func (p *SimplePlayer) Play(ctx context.Context) error {
 		}
 
 		frame := p.movie.Frames[p.frame]
-		_, err := fmt.Fprint(p.output, "\033[2J\033[999;1H") // Clear screen and move cursor to top
+		_, err := fmt.Fprint(p.output, "\033[2J\033[H") // Clear screen and move cursor to top
 		if err != nil {
 			return err
 		}
