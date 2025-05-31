@@ -21,14 +21,14 @@ func NewPlayer(m *movie.Movie, logger *slog.Logger, renderer *lipgloss.Renderer)
 
 	playCtx, playCancel := context.WithCancel(context.Background())
 	player := &Player{
-		movie:          m,
-		log:            logger,
-		start:          time.Now(),
-		zone:           zone.New(),
-		speed:          1,
-		styles:         NewStyles(m, renderer),
-		playCtx:        playCtx,
-		playCancel:     playCancel,
+		movie:      m,
+		log:        logger,
+		start:      time.Now(),
+		zone:       zone.New(),
+		speed:      1,
+		styles:     NewStyles(m, renderer),
+		playCtx:    playCtx,
+		playCancel: playCancel,
 	}
 
 	return player
@@ -55,8 +55,7 @@ type Player struct {
 	playCtx    context.Context
 	playCancel context.CancelFunc
 
-	styles         Styles
-
+	styles Styles
 }
 
 type SimplePlayer struct {
@@ -100,7 +99,7 @@ func (p *Player) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				return p, tea.Quit
 			} else if p.frame+frameDiff <= 0 {
 				p.speed = 1
-					p.pause()
+				p.pause()
 				return p, nil
 			}
 			p.frame += frameDiff
@@ -133,8 +132,6 @@ func (p *Player) View() string {
 
 	return p.zone.Scan(content)
 }
-
-
 
 func (p *Player) pause() {
 	p.clearTimeouts()
@@ -178,7 +175,7 @@ func (p *SimplePlayer) Play(ctx context.Context) error {
 		}
 
 		frame := p.movie.Frames[p.frame]
-		_, err := fmt.Fprint(p.output, "\033[2J\033[H") // Clear screen and move cursor to top
+		_, err := fmt.Fprint(p.output, "\033[2J\033[5;1H") // Clear screen and move cursor to top
 		if err != nil {
 			return err
 		}
