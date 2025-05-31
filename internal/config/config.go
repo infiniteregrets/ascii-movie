@@ -64,7 +64,7 @@ func New() *Config {
 			Telnet: Telnet{
 				Listener: Listener{
 					Enabled: true,
-					Address: ":23",
+					Address: ":3333",
 				},
 			},
 
