@@ -14,17 +14,6 @@ primary_region = 'bom'
 
 [[services]]
   protocol = 'tcp'
-  internal_port = 22
-  auto_stop_machines = 'stop'
-  auto_start_machines = true
-  min_machines_running = 0
-
-  [[services.ports]]
-    port = 22
-    handlers = []
-
-[[services]]
-  protocol = 'tcp'
   internal_port = 3333
   auto_stop_machines = 'stop'
   auto_start_machines = true
