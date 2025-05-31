@@ -12,6 +12,28 @@ primary_region = 'bom'
   source = 'data'
   destination = '/data'
 
+[[services]]
+  protocol = 'tcp'
+  internal_port = 22
+  auto_stop_machines = 'stop'
+  auto_start_machines = true
+  min_machines_running = 0
+
+  [[services.ports]]
+    port = 22
+    handlers = []
+
+[[services]]
+  protocol = 'tcp'
+  internal_port = 23
+  auto_stop_machines = 'stop'
+  auto_start_machines = true
+  min_machines_running = 0
+
+  [[services.ports]]
+    port = 23
+    handlers = []
+
 [http_service]
   internal_port = 8080
   force_https = true
