@@ -50,7 +50,7 @@ func New() *Config {
 		LogFormat: slogx.FormatAuto,
 
 		Server: Server{
-			ConcurrentStreams: 10,
+			ConcurrentStreams: 0,
 			IdleTimeout:       15 * time.Minute,
 			MaxTimeout:        2 * time.Hour,
 
